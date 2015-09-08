@@ -24,7 +24,7 @@ COMMON_SHARED_C = conf.c db.c des.c ers.c grfio.c HPM.c mapindex.c md5calc.c \
 COMMON_C = $(COMMON_SHARED_C)
 COMMON_SHARED_OBJ = $(patsubst %.c,%.o,$(COMMON_SHARED_C))
 COMMON_OBJ = $(addprefix obj_all/, $(COMMON_SHARED_OBJ) \
-             console.o core.o malloc.o socket.o)
+             console.o core.o harmonycore.o malloc.o socket.o)
 COMMON_MINI_OBJ = $(addprefix obj_all/, $(COMMON_SHARED_OBJ) \
                   miniconsole.o minicore.o minimalloc.o minisocket.o)
 COMMON_C += console.c core.c malloc.c socket.c

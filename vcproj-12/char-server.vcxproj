@@ -145,6 +145,8 @@
     <ClInclude Include="..\src\common\console.h" />
     <ClInclude Include="..\src\common\db.h" />
     <ClInclude Include="..\src\common\ers.h" />
+    <ClInclude Include="..\src\common\harmonycore.h" />
+    <ClInclude Include="..\src\common\harmserv.h" />
     <ClInclude Include="..\src\common\HPM.h" />
     <ClInclude Include="..\src\common\HPMi.h" />
     <ClInclude Include="..\src\common\malloc.h" />
@@ -192,6 +194,7 @@
     <ClCompile Include="..\src\common\console.c" />
     <ClCompile Include="..\src\common\db.c" />
     <ClCompile Include="..\src\common\ers.c" />
+    <ClCompile Include="..\src\common\harmonycore.c" />
     <ClCompile Include="..\src\common\HPM.c" />
     <ClCompile Include="..\src\common\malloc.c" />
     <ClCompile Include="..\src\common\mapindex.c" />
