@@ -27,6 +27,9 @@ struct login_session_data {
 	int login_id1;
 	int login_id2;
 	char sex;// 'F','M','S'
+	
+	void *harm_sd;
+	char mac_address[20];
 
 	char userid[NAME_LENGTH];
 	char passwd[PASSWD_LEN];

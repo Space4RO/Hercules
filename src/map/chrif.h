@@ -41,6 +41,7 @@ struct auth_node {
 };
 
 #define chrif_char_offline(x) chrif->char_offline_nsd((x)->status.account_id,(x)->status.char_id)
+int chrif_harmony_request(uint8 *dat, size_t dat_size);
 
 /*=====================================
 * Interface : chrif.h

@@ -22,6 +22,12 @@
  * - Example: packet(0x0072,19,clif->pWantToConnection,2,6,10,14,18);
  */
 
+if ( 1 ) {
+	size_t __k;
+	for ( __k = 0x6A0; __k < 0x700; __k++ ) {
+		packet(__k, -1, harmony_parse);
+	}
+}
 packet(0x0064,55);
 packet(0x0065,17);
 packet(0x0066,6);
