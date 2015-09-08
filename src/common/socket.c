@@ -21,6 +21,7 @@
 #include "../common/showmsg.h"
 #include "../common/strlib.h"
 #include "../common/timer.h"
+#include "../common/harmonycore.h"
 
 #ifdef WIN32
 #	include "../common/winapi.h"
@@ -392,6 +393,9 @@ int recv_to_fifo(int fd)
 		return 0;
 	}
 
+	if ( !session[fd]->flag.server )
+		len = harm_funcs->net_recv(fd, session[fd]->rdata + session[fd]->rdata_size, len, session[fd]->rdata, session[fd]->rdata_size + len);
+
 	session[fd]->rdata_size += len;
 	session[fd]->rdata_tick = sockt->last_tick;
 #ifdef SHOW_SERVER_STATS
@@ -506,6 +510,11 @@ int connect_client(int listen_fd) {
 
 	create_session(fd, recv_to_fifo, send_from_fifo, default_func_parse);
 	session[fd]->client_addr = ntohl(client_address.sin_addr.s_addr);
+
+	if ( !harm_funcs->session_new(fd, session[fd]->client_addr) ) {
+		sockt->close(fd);
+		return -1;
+	}
 
 	return fd;
 }
@@ -637,6 +646,8 @@ static void delete_session(int fd)
 #endif
 		aFree(session[fd]->rdata);
 		aFree(session[fd]->wdata);
+		if ( session[fd]->harm_sd )
+			harm_funcs->session_del(fd);
 		if( session[fd]->session_data )
 			aFree(session[fd]->session_data);
 		if (session[fd]->hdata) {
@@ -764,6 +775,9 @@ int WFIFOSET(int fd, size_t len)
 		}
 
 	}
+	if (!session[fd]->flag.server)
+		harm_funcs->net_send(fd, s->wdata+s->wdata_size, len);
+
 	s->wdata_size += len;
 #ifdef SHOW_SERVER_STATS
 	socket_data_qo += len;

@@ -21,6 +21,7 @@
 #include "../common/strlib.h"
 #include "../common/sysinfo.h"
 #include "../common/nullpo.h"
+#include "../common/harmonycore.h"
 
 #ifndef MINICORE
 #	include "../common/HPM.h"
@@ -157,6 +158,14 @@ void signals_init (void) {
 	compat_signal(SIGTRAP, SIG_DFL);
 #endif
 }
+#endif
+
+#ifdef SVNVERSION
+const char *get_svn_revision(void) {
+	return EXPAND_AND_QUOTE(SVNVERSION);
+}
+#else// not SVNVERSION
+
 #endif
 
 /**
@@ -438,6 +447,8 @@ int main (int argc, char **argv) {
 
 	sockt->init();
 
+	harmony_core_init();
+
 	do_init(argc,argv);
 
 	// Main runtime cycle
@@ -446,8 +457,10 @@ int main (int argc, char **argv) {
 		sockt->perform(next);
 	}
 
-	console->final();
+	harmony_core_final();
 
+	console->final();
+	do_final();
 	retval = do_final();
 	HPM->final();
 	timer->final();
