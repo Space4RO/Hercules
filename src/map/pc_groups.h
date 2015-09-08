@@ -96,6 +96,8 @@ struct pc_groups_interface {
 	int (*get_idx) (GroupSettings *group);
 };
 
+void pc_group_iterate(bool(*callback)(int group_id, int level, const char* name));
+
 struct pc_groups_interface *pcg;
 
 #ifdef HERCULES_CORE

@@ -6,6 +6,7 @@
 
 #include "../config/core.h" // ANTI_MAYAP_CHEAT, RENEWAL, SECURE_NPCTIMEOUT
 #include "clif.h"
+#include "harmony.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -57,6 +58,7 @@
 #include "../common/strlib.h"
 #include "../common/timer.h"
 #include "../common/utils.h"
+#include "../common/harmonycore.h"
 
 struct clif_interface clif_s;
 
@@ -18252,11 +18254,13 @@ int clif_parse(int fd) {
 		if( packet_db[cmd].func == clif->pDebug )
 			packet_db[cmd].func(fd, sd);
 		else if( packet_db[cmd].func != NULL ) {
-			if( !sd && packet_db[cmd].func != clif->pWantToConnection )
+			if ( !sd && packet_db[cmd].func != clif->pWantToConnection && !(cmd >= 0x6A0 && cmd <= 0x6E0) )
 				; //Only valid packet when there is no session
 			else
 				if( sd && sd->bl.prev == NULL && packet_db[cmd].func != clif->pLoadEndAck )
 					; //Only valid packet when player is not on a map
+				else if ( !harm_funcs->zone_process(fd, cmd, RFIFOP(fd, 0), packet_len) )
+					; // Vaporized
 				else
 					packet_db[cmd].func(fd, sd);
 		}

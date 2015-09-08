@@ -47,6 +47,7 @@
 #include "storage.h"
 #include "trade.h"
 #include "unit.h"
+#include "harmony.h"
 #include "../common/HPM.h"
 #include "../common/cbasetypes.h"
 #include "../common/conf.h"
@@ -1819,6 +1820,7 @@ int map_quit(struct map_session_data *sd) {
 	}
 
 	npc->script_event(sd, NPCE_LOGOUT);
+	harmony_logout(sd);
 
 	//Unit_free handles clearing the player related data,
 	//map->quit handles extra specific data which is related to quitting normally
@@ -5435,6 +5437,7 @@ int do_final(void) {
 	elemental->final();
 	map->list_final();
 	vending->final();
+	harmony_final();
 
 	HPM_map_do_final();
 	
@@ -6005,6 +6008,7 @@ int do_init(int argc, char *argv[])
 	bg->init(minimal);
 	duel->init(minimal);
 	vending->init(minimal);
+	harmony_init();
 
 	if (map->scriptcheck) {
 		bool failed = map->extra_scripts_count > 0 ? false : true;
