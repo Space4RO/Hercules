@@ -118,7 +118,7 @@
     <ClCompile Include="..\src\common\core.c">
       <Filter>common</Filter>
     </ClCompile>
-	<ClCompile Include="..\src\common\console.c">
+    <ClCompile Include="..\src\common\console.c">
       <Filter>common</Filter>
     </ClCompile>
     <ClCompile Include="..\src\common\des.c">
@@ -200,6 +200,13 @@
       <Filter>common</Filter>
     </ClCompile>
     <ClCompile Include="..\src\common\mutex.c">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\map\channel.c" />
+    <ClCompile Include="..\src\map\harmony.c">
+      <Filter>map_sql</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\harmonycore.c">
       <Filter>common</Filter>
     </ClCompile>
   </ItemGroup>
@@ -327,7 +334,7 @@
     <ClInclude Include="..\src\common\core.h">
       <Filter>common</Filter>
     </ClInclude>
-	<ClInclude Include="..\src\common\console.h">
+    <ClInclude Include="..\src\common\console.h">
       <Filter>common</Filter>
     </ClInclude>
     <ClInclude Include="..\src\common\db.h">
@@ -429,6 +436,16 @@
       <Filter>common</Filter>
     </ClInclude>
     <ClInclude Include="..\src\common\mutex.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\map\channel.h" />
+    <ClInclude Include="..\src\map\harmony.h">
+      <Filter>map_sql</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\common\harmserv.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\common\harmonycore.h">
       <Filter>common</Filter>
     </ClInclude>
   </ItemGroup>

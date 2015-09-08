@@ -331,6 +331,12 @@ struct storage_data {
 	struct item items[MAX_STORAGE];
 };
 
+#ifdef HARMSW
+	#undef HARMSW
+#endif
+#define HARMSW HARMSW_HERCULES_GROUP
+#define HARM_HERCULES
+
 struct guild_storage {
 	int dirty;
 	int guild_id;

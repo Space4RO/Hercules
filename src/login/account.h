@@ -25,6 +25,7 @@ struct mmo_account
 	char pass[32+1];            // 23+1 for plaintext, 32+1 for md5-ed passwords
 	char sex;                   // gender (M/F/S)
 	char email[40];             // e-mail (by default: a@a.com)
+	char mac_address[20];       // Harmony v3
 	int group_id;               // player group id
 	uint8 char_slots;           // this accounts maximum character slots (maximum is limited to MAX_CHARS define in char server)
 	unsigned int state;         // packet 0x006a value + 1 (0: complete OK)
@@ -72,6 +73,8 @@ struct AccountDB
 	///
 	/// @param self Database
 	void (*destroy)(AccountDB* self);
+	
+	bool (*is_mac_banned)(AccountDB* self, const char *mac);
 
 	/// Gets a property from this database.
 	/// These read-only properties must be implemented:
