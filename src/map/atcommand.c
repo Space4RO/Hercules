@@ -2211,18 +2211,18 @@ ACMD(memo)
 ACMD(reloadgrfintegrity) {
 	harm_funcs->zone_grf_reload();
 	clif->message(fd, "GRF integrity definitions reloaded.");
-	return 0;
+	return true;
 }
 
 ACMD(reloadharmony) {
 	harm_funcs->zone_reload();
 	clif->message(fd, "Harmony configuration reloaded.");
-	return 0;
+	return true;
 }
 
 ACMD(showautoban) {
 	harm_funcs->zone_autoban_show(fd);
-	return 0;
+	return true;
 }
 
 ACMD(liftautoban) {
@@ -2251,7 +2251,7 @@ ACMD(liftautoban) {
 		clif->message(fd, "Removed all autoban entries.");
 	}
 
-	return 0;
+	return true;
 }
 
 /*==========================================
@@ -2272,7 +2272,7 @@ ACMD(netinfo) {
 	sprintf(atcmd_output, "- IP Address : %d.%d.%d.%d", CONVIP(ip));
 	clif->message(fd, atcmd_output);
 
-	return 0;
+	return true;
 }
 
 /*==========================================
@@ -2302,7 +2302,7 @@ ACMD(showmacban) {
 	}
 	SQL->StmtFree(stmt);
 
-	return 0;
+	return true;
 }
 
 ACMD(macban) {
@@ -2337,7 +2337,7 @@ ACMD(macban) {
 
 	sprintf(atcmd_output, "Mac Address %s banned.", mac_address);
 	clif->message(fd, atcmd_output);
-	return 0;
+	return true;
 }
 
 ACMD(liftmacban) {
@@ -2363,7 +2363,7 @@ ACMD(liftmacban) {
 
 	sprintf(atcmd_output, "Mac Address '%s' unbanned.", message);
 	clif->message(fd, atcmd_output);
-	return 0;
+	return true;
 }
 /*==========================================
  *
