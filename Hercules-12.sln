@@ -23,6 +23,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "plugin-highclass", "vcproj-
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "plugin-admincp", "vcproj-12\plugin-admincp.vcxproj", "{55F97553-744A-4352-B6A1-8CB494BFF97F}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "plugin-usercp", "vcproj-12\plugin-usercp.vcxproj", "{AD57DB60-BC71-4FCC-9974-4FC54B875B38}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -69,6 +71,10 @@ Global
 		{55F97553-744A-4352-B6A1-8CB494BFF97F}.Debug|Win32.Build.0 = Debug|Win32
 		{55F97553-744A-4352-B6A1-8CB494BFF97F}.Release|Win32.ActiveCfg = Release|Win32
 		{55F97553-744A-4352-B6A1-8CB494BFF97F}.Release|Win32.Build.0 = Release|Win32
+		{AD57DB60-BC71-4FCC-9974-4FC54B875B38}.Debug|Win32.ActiveCfg = Debug|Win32
+		{AD57DB60-BC71-4FCC-9974-4FC54B875B38}.Debug|Win32.Build.0 = Debug|Win32
+		{AD57DB60-BC71-4FCC-9974-4FC54B875B38}.Release|Win32.ActiveCfg = Release|Win32
+		{AD57DB60-BC71-4FCC-9974-4FC54B875B38}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
