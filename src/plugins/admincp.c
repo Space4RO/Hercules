@@ -198,8 +198,8 @@ ACMD(itemmap) {
 
 HPExport struct hplugin_info pinfo = {
 	"AdminCP",
-	SERVER_TYPE_ALL,
-	"1.0",
+	SERVER_TYPE_CHAR|SERVER_TYPE_MAP,
+	"1.1",
 	HPM_VERSION,
 };
 
