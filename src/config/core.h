@@ -32,7 +32,7 @@
 
 /// Uncomment to disable Hercules' anonymous stat report
 /// We kindly ask you to consider keeping it enabled, it helps us improve Hercules.
-//#define STATS_OPT_OUT
+#define STATS_OPT_OUT
 
 /// Uncomment to enable the Cell Stack Limit mod.
 /// It's only config is the battle_config custom_cell_stack_limit.
@@ -51,7 +51,7 @@
 //if the item drops farther from the player than this,
 //it will not be autolooted. [Skotlex]
 //Note: The range is unlimited unless this define is set.
-//#define AUTOLOOT_DISTANCE AREA_SIZE
+#define AUTOLOOT_DISTANCE AREA_SIZE
 
 /// Uncomment to switch the way map zones' "skill_damage_cap" functions.
 /// When commented the cap takes place before modifiers, as to have them be useful.
