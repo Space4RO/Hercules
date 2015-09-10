@@ -21,6 +21,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "plugin-HPMHooking_login", "
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "plugin-highclass", "vcproj-12\plugin-highclass.vcxproj", "{AE9D66AF-6E79-4C76-8493-B7668E956475}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "plugin-admincp", "vcproj-12\plugin-admincp.vcxproj", "{55F97553-744A-4352-B6A1-8CB494BFF97F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -63,6 +65,10 @@ Global
 		{AE9D66AF-6E79-4C76-8493-B7668E956475}.Debug|Win32.Build.0 = Debug|Win32
 		{AE9D66AF-6E79-4C76-8493-B7668E956475}.Release|Win32.ActiveCfg = Release|Win32
 		{AE9D66AF-6E79-4C76-8493-B7668E956475}.Release|Win32.Build.0 = Release|Win32
+		{55F97553-744A-4352-B6A1-8CB494BFF97F}.Debug|Win32.ActiveCfg = Debug|Win32
+		{55F97553-744A-4352-B6A1-8CB494BFF97F}.Debug|Win32.Build.0 = Debug|Win32
+		{55F97553-744A-4352-B6A1-8CB494BFF97F}.Release|Win32.ActiveCfg = Release|Win32
+		{55F97553-744A-4352-B6A1-8CB494BFF97F}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
