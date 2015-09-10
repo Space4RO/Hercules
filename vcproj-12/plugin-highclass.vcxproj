@@ -10,6 +10,9 @@
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\plugins\highclass.c" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{91D66E10-AEDD-41FA-991C-F4933A7E6813}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
