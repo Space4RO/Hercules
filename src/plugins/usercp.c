@@ -19,10 +19,17 @@
 
 
 static int itemdb_searchname_array(struct item_data** data, int size, const char *prefix, int type, int class1, int class2, int loc);
-
 static void vending_purchasereq(struct map_session_data* sd, int aid, unsigned int uid, int count);
 
-void hookPre_PurchaseReq2(int *fd, struct map_session_data *sd);
+static void clif_parse_PurchaseReq2(int *fd, struct map_session_data *sd);
+
+
+HPExport struct hplugin_info pinfo = {
+	"UserCP",
+	SERVER_TYPE_MAP,
+	"3.0",
+	HPM_VERSION,
+};
 
 BUILDIN(mobspawn_getdata) {
 	int i, j, cdx = 0, count = 0;
@@ -171,19 +178,11 @@ BUILDIN(purchasereq) {
 		if (type = 1)
 			vending_purchasereq(sd, pc->readreg(sd, script->add_str("@aid")), pc->readreg(sd, script->add_str("@uid")), pc->readreg(sd, script->add_str("@count")));
 		sd->vended_id = 0;
-		removeFromSession(session[sd->fd], HPMi->pid);
+		removeFromMSD(sd, HPMi->pid);
 	}
 
 	return true;
 }
-
-
-HPExport struct hplugin_info pinfo = {
-	"UserCP",
-	SERVER_TYPE_MAP,
-	"3.0",
-	HPM_VERSION,
-};
 
 HPExport void plugin_init(void) {
 	iMalloc = GET_SYMBOL("iMalloc");
@@ -199,13 +198,11 @@ HPExport void plugin_init(void) {
 	npc = GET_SYMBOL("npc");
 	pc = GET_SYMBOL("pc");
 
-	addHookPre("clif->pPurchaseReq2", hookPre_PurchaseReq2);
+	addHookPre("clif->pPurchaseReq2", clif_parse_PurchaseReq2);
 
 	addScriptCommand("mobspawn_getdata", "is", mobspawn_getdata);
-
 	addScriptCommand("searchstores_query", "ii", searchstores_query);
 	addScriptCommand("searchstores_getdata", "iiii", searchstores_getdata);
-
 	addScriptCommand("purchasereq", "i", purchasereq);
 }
 
@@ -277,7 +274,7 @@ void vending_purchasereq(struct map_session_data *sd, int aid, unsigned int uid,
 	const uint8 *data;
 
 	if (sd && vsd 
-		&& (data = getFromSession(session[sd->fd], HPMi->pid))
+		&& (data = getFromMSD(sd, HPMi->pid))
 	) {
 		vending->purchase(sd, aid, uid, data, count);
 	}
@@ -285,7 +282,7 @@ void vending_purchasereq(struct map_session_data *sd, int aid, unsigned int uid,
 
 /// Shop item(s) purchase request (CZ_PC_PURCHASE_ITEMLIST_FROMMC2).
 /// 0801 <packet len>.W <account id>.L <unique id>.L { <amount>.W <index>.W }*
-void hookPre_PurchaseReq2(int *fd, struct map_session_data *sd) {
+void clif_parse_PurchaseReq2(int *fd, struct map_session_data *sd) {
 	int len = (int)RFIFOW(*fd, 2) - 12;
 	int aid = (int)RFIFOL(*fd, 4);
 	int uid = (int)RFIFOL(*fd, 8);
@@ -317,15 +314,15 @@ void hookPre_PurchaseReq2(int *fd, struct map_session_data *sd) {
 			script->setarray_pc(sd, "@bought_quantity", i, (void *)(intptr_t)amount, &key_amount);
 		}
 
-		CREATE(vended, uint8 *, count);
-		memcpy(vended, data, sizeof(uint8 *) * count);
 		pc->setregstr(sd, script->add_str("@vendor$"), vsd->message);
 		pc->setreg(sd, script->add_str("@aid"), aid);
 		pc->setreg(sd, script->add_str("@uid"), uid);
 		pc->setreg(sd, script->add_str("@count"), count);
 		pc->setreg(sd, script->add_str("@price"), k);
-		addToSession(session[sd->fd], vended, HPMi->pid, true);
 
+		CREATE(vended, uint8 *, count);
+		memcpy(vended, data, sizeof(uint8 *) * count);
+		addToMSD(sd, vended, HPMi->pid, true);
 		npc->event(sd, "VendingSystem::OnBuyItem", 0);
 		hookStop();
 	}
