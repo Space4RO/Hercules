@@ -754,7 +754,8 @@ int char_memitemdata_to_sql(const struct item items[], int max, int id, int tabl
 			if( items[i].nameid == 0 || flag[i] )
 				continue;
 
-			if( items[i].nameid == item.nameid
+			if (items[i].id == item.id
+			 &&	items[i].nameid == item.nameid
 			 && items[i].card[0] == item.card[0]
 			 && items[i].card[2] == item.card[2]
 			 && items[i].card[3] == item.card[3]
