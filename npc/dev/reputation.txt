@@ -1,0 +1,259 @@
+-	script	ReputationSystem::ReputationSystem	-1,{
+OnPCLoginEvent:	callsub S_ReputationUpdate;	end;
+
+OnPCKillEvent:
+	if (killedrid != getcharid(0)) {
+		set PVP_POINTS, PVP_POINTS + 1;
+		set PVP_POINTS_TOTAL, PVP_POINTS_TOTAL + 1;
+		dispbottom "PVP Gained : 1 points (total " + PVP_POINTS + ")";
+	}
+	end;
+
+OnSelect:
+	setarray .@data$[0], "null", "0", "null", "0", "null", "0";
+
+	/* ยศจาการฆ่ามอนสเตอร์ */
+	for (set .@i, 0; .@i < getarraysize($@PVERanking$) / 3; set .@i, .@i + 1) {
+		if (PVE_POINTS > atoi($@PVERanking$[.@i*3])) {
+			set .@data$[0], $@PVERanking$[(.@i*3)+1];
+			set .@data$[1], $@PVERanking$[(.@i*3)+2];
+		}
+	}
+	
+	/* ยศจากพีวีพี */
+	for (set .@i, 0; .@i < getarraysize($@PVPRanking$) / 3; set .@i, .@i + 1) {
+		if (PVP_POINTS_TOTAL > atoi($@PVPRanking$[.@i*3])) {
+			set .@data$[2], $@PVPRanking$[(.@i*3)+1];
+			set .@data$[3], $@PVPRanking$[(.@i*3)+2];
+		}
+	}
+	
+	/* ยศจากเอ็มวีพี */
+	for (set .@i, 0; .@i < getarraysize($@MVPRanking$) / 3; set .@i, .@i + 1) {
+		if (MVP_POINTS_TOTAL > atoi($@MVPRanking$[.@i*3])) {
+			set .@data$[4], $@MVPRanking$[(.@i*3)+1];
+			set .@data$[5], $@MVPRanking$[(.@i*3)+2];
+		}
+	}
+	
+	mes "[Reputation System]";
+	mes "PVE : " + PVE_POINTS + " แต้ม";
+	mes "PVP : " + PVP_POINTS_TOTAL + " แต้ม";
+	mes "MVP : " + MVP_POINTS_TOTAL + " แต้ม";
+	mes "โปรดเลือกฉายาที่คุณต้องการ";
+	switch (select("ยศจากมอนสเตอร์["+((.@data$[0] == "null")?"ไม่มี":.@data$[0])+"]:ยศจากแต้มพีวีพี["+((.@data$[2] == "null")?"ไม่มี":.@data$[2])+"]:ยศจากแต้มเอ็มวีพี["+((.@data$[4] == "null")?"ไม่มี":.@data$[4])+"]:ถอดยศ")) {
+		case 1:	set Reputation$, .@data$[0];	set ReputationBonus, atoi(.@data$[1]);	break;
+		case 2:	set Reputation$, .@data$[2];	set ReputationBonus, atoi(.@data$[3]);	break;
+		case 3:	set Reputation$, .@data$[4];	set ReputationBonus, atoi(.@data$[5]);	break;
+		case 4: 	set Reputation$, "null";		set ReputationBonus, 0;			break;
+	}
+
+	reputation_update Reputation$;
+	close;
+	
+OnUpdate:	callsub S_ReputationUpdate;				end;
+OnCalcBonus:	callsub S_ReputationCalcBonus, ReputationBonus;	end;
+
+
+OnInit:
+	/* $PVERanking$ exp, honor, bonus_id  */
+	setarray $@PVERanking$[0], 
+		"1000", "Serpent", "1", 
+		"3000", "Giant", "2", 
+		"6000", "Gehenna", "3", 
+		"13000", "Division", "4", 
+		"30000", "Lich", "5", 
+		"40000", "Shadow Lich", "6", 
+		"60000", "Doom", "7", 
+		"80000", "Necromancer", "8", 
+		"110000", "Strongmen", "9", 
+		"150000", "Monstrous", "10", 
+		"200000", "Devil", "11", 
+		"260000", "Sameal", "12", 
+		"330000", "Mammon", "13", 
+		"410000", "Beelzebub", "14", 
+		"500000", "Abaddon", "15", 
+		"600000", "Diabolic", "16", 
+		"800000", "Unholy Angel", "17", 
+		"1100000", "Unholy Spirit", "18", 
+		"1500000", "Fallen Angel", "19", 
+		"2000000", "Lucifer", "20", 
+		"2600000", "Satan", "21", 
+		"3300000", "Lilith", "22", 
+		"4100000", "Demons", "23", 
+		"5000000", "Kingmans", "24", 
+		"99999999", "Null", "0"
+	;
+		
+	/* $PVPRanking$ exp, honor, bonus_id  */
+	setarray $@PVPRanking$[0], 
+		"0", "Baby", "101", 
+		"20", "Child", "102", 
+		"50", "Adult", "103", 
+		"90", "Common", "104", 
+		"140", "Soldier", "105", 
+		"200", "Sergeant", "106", 
+		"270", "Captian", "107", 
+		"350", "Major", "108", 
+		"440", "Colonel", "109", 
+		"540", "General", "110", 
+		"650", "Commander", "111", 
+		"770", "Super Commander", "112", 
+		"900", "Sir", "113", 
+		"1040", "Baron", "114", 
+		"1190", "Viscount", "115", 
+		"1600", "Count", "116", 
+		"1820", "Marquis", "117", 
+		"2050", "Duke", "118", 
+		"2290", "King", "119", 
+		"2540", "Great King", "120", 
+		"2800", "Incredible", "121", 
+		"3070", "Invincible", "122", 
+		"3350", "Hero", "123", 
+		"3640", "Legend", "124", 
+		"3940", "Mythical", "125", 
+		"4250", "Immortal", "126", 
+		"4570", "Immortal Spirit", "127", 
+		"4900", "Saint", "128", 
+		"5240", "Angel", "129", 
+		"5590", "Angel of Death", "130", 
+		"6320", "Guardain Spirit", "131", 
+		"6700", "Evil God", "132", 
+		"7090", "King of Hell", "133", 
+		"7490", "King of Heaven", "134", 
+		"7900", "God of Prophesy", "135", 
+		"8320", "God of Hunt", "136", 
+		"8750", "God of War", "137", 
+		"9190", "God of Death", "138", 
+		"99999", "Null", "0"
+	;
+		
+	/* $MVPRanking$ exp, honor, bonus_id  */
+	setarray $@MVPRanking$[0], 
+		"10", "MVP Novice", "201", 
+		"90", "MVP Killer", "202", 
+		"180", "MVP Hunter", "203", 
+		"280", "MVP Buster", "204", 
+		"390", "MVP Commander", "205", 
+		"510", "MVP Challenger", "206", 
+		"640", "MVP Slayer", "207", 
+		"800", "MVP Invader", "208", 
+		"1100", "MVP Master", "209", 
+		"1500", "MVP Leader", "210", 
+		"2000", "MVP Expert", "211", 
+		"2600", "MVP of Utgard", "212", 
+		"3300", "MVP of Midgard", "213", 
+		"4100", "MVP of Asgard", "214", 
+		"5000", "Legendary MVP", "215", 
+		"99999", "Null", "0"
+	;
+		
+	/* คำสั่งที่ใช้เลือกฉายา */
+	bindatcmd "rank", strnpcinfo(3) + "::OnSelect";
+
+	end;
+
+S_ReputationUpdate:
+	/* ตำแน่งจีเอ็มมาสเตอร์ */
+	if (getgroupid() >= 60) {
+		set Reputation$, "Grean Master";
+		set ReputationBonus, 100000;
+	}
+	
+	reputation_update Reputation$;
+
+	return;
+
+S_ReputationCalcBonus:
+	set .@id, getarg(0);
+
+	switch (.@id) {
+	// โบนัส PVE
+	case 1:		skill ALL_INCCARRY, 1;	bonus2 bExpAddRace, RC_All, 2;	break;
+	case 2:		skill ALL_INCCARRY, 2;	bonus2 bExpAddRace, RC_All, 4;	break;
+	case 3:		skill ALL_INCCARRY, 3;	bonus2 bExpAddRace, RC_All, 6;	break;
+	case 4:		skill ALL_INCCARRY, 4;	bonus2 bExpAddRace, RC_All, 8;	break;
+	case 5:		skill ALL_INCCARRY, 5;	bonus2 bExpAddRace, RC_All, 10;	break;
+	case 6:		skill ALL_INCCARRY, 6;	bonus2 bExpAddRace, RC_All, 12;	break;
+	case 7:		skill ALL_INCCARRY, 7;	bonus2 bExpAddRace, RC_All, 14;	break;
+	case 8:		skill ALL_INCCARRY, 8;	bonus2 bExpAddRace, RC_All, 16;	break;
+	case 9:		skill ALL_INCCARRY, 9;	bonus2 bExpAddRace, RC_All, 18;	break;
+	case 10:	skill ALL_INCCARRY, 10;	bonus2 bExpAddRace, RC_All, 20;	break;
+	case 11:	bonus2 bExpAddRace, RC_All, 22;	bonus bAtk, 4;	bonus bMatk, 6;		break;
+	case 12:	bonus2 bExpAddRace, RC_All, 24;	bonus bAtk, 6;	bonus bMatk, 9;		break;
+	case 13:	bonus2 bExpAddRace, RC_All, 26;	bonus bAtk, 8;	bonus bMatk, 12;	break;
+	case 14:	bonus2 bExpAddRace, RC_All, 28;	bonus bAtk, 10;	bonus bMatk, 15;	break;
+	case 15:	bonus2 bExpAddRace, RC_All, 30;	bonus bAtk, 12;	bonus bMatk, 18;	break;
+	case 16:	bonus2 bExpAddRace, RC_All, 30;	bonus bAtk, 14;	bonus bMatk, 21;	break;
+	case 17:	bonus2 bExpAddRace, RC_All, 30;	bonus bAtk, 16;	bonus bMatk, 24;	break;
+	case 18:	bonus bAtk, 18;	bonus bMatk, 27;	bonus bAllStats, 1;	break;
+	case 19:	bonus bAtk, 20;	bonus bMatk, 30;	bonus bAllStats, 1;	break;
+	case 20:	bonus bAtk, 22;	bonus bMatk, 33;	bonus bAllStats, 1;	break;
+	case 21:	bonus bAtk, 24;	bonus bMatk, 36;	bonus bAllStats, 1;	break;
+	case 22:	bonus bAtk, 26;	bonus bMatk, 39;	bonus bAllStats, 1;	break;
+	case 23:	bonus bAtk, 28;	bonus bMatk, 42;	bonus bAllStats, 1;	break;
+	case 24:	bonus bAtk, 35;	bonus bMatk, 50;	bonus bAllStats, 2;	break;
+
+	// โบนัส PVP
+	case 101:	break;
+	case 102:	bonus bMaxHP, 50;	break;
+	case 103:	bonus bMaxHP, 60;	break;
+	case 104:	bonus bMaxHP, 70;	break;
+	case 105:	bonus bMaxHP, 80;	break;
+	case 106:	bonus bMaxHP, 90;	break;
+	case 107:	bonus bMaxHP, 100;	bonus bDef, 1;	bonus bMdef, 1;	break;
+	case 108:	bonus bMaxHP, 110;	bonus bDef, 1;	bonus bMdef, 1;	break;
+	case 109:	bonus bMaxHP, 120;	bonus bDef, 1;	bonus bMdef, 1;	break;
+	case 110:	bonus bMaxHP, 130;	bonus bDef, 1;	bonus bMdef, 1;	break;
+	case 111:	bonus bMaxHP, 140;	bonus bDef, 1;	bonus bMdef, 1;	break;
+	case 112:	bonus bMaxHP, 150;	bonus bDef, 2;	bonus bMdef, 2;	break;
+	case 113:	bonus bMaxHP, 160;	bonus bDef, 2;	bonus bMdef, 2;	break;
+	case 114:	bonus bMaxHP, 170;	bonus bDef, 2;	bonus bMdef, 2;	break;
+	case 115:	bonus bMaxHP, 180;	bonus bDef, 2;	bonus bMdef, 2;	break;
+	case 116:	bonus bMaxHP, 190;	bonus bDef, 2;	bonus bMdef, 2;	break;
+	case 117:	bonus bMaxHP, 200;	bonus bDef, 3;	bonus bMdef, 3;	break;
+	case 118:	bonus bMaxHP, 210;	bonus bDef, 3;	bonus bMdef, 3;	break;
+	case 119:	bonus bMaxHP, 220;	bonus bDef, 3;	bonus bMdef, 3;	break;
+	case 120:	bonus bMaxHP, 230;	bonus bDef, 3;	bonus bMdef, 3;	break;
+	case 121:	bonus bMaxHP, 240;	bonus bDef, 3;	bonus bMdef, 3;	break;
+	case 122:	bonus bMaxHP, 250;	bonus bDef, 4;	bonus bMdef, 4;	break;
+	case 123:	bonus bMaxHP, 300;	bonus bDef, 4;	bonus bMdef, 4;	break;
+	case 124:	bonus bMaxHP, 350;	bonus bDef, 4;	bonus bMdef, 4;	break;
+	case 125:	bonus bMaxHP, 400;	bonus bDef, 4;	bonus bMdef, 4;	break;
+	case 126:	bonus bMaxHP, 450;	bonus bDef, 4;	bonus bMdef, 4;	break;
+	case 127:	bonus bMaxHP, 500;	bonus bDef, 5;	bonus bMdef, 5;	break;
+	case 128:	bonus bDef, 5;	bonus bMdef, 5;	bonus bMaxHPrate, 1;	bonus bMaxSPrate, 1;	bonus bAllStats, 1;	break;
+	case 129:	bonus bDef, 5;	bonus bMdef, 5;	bonus bMaxHPrate, 2;	bonus bMaxSPrate, 2;	bonus bAllStats, 1;	break;
+	case 130:	bonus bDef, 5;	bonus bMdef, 5;	bonus bMaxHPrate, 3;	bonus bMaxSPrate, 3;	bonus bAllStats, 1;	break;
+	case 131:	bonus bDef, 5;	bonus bMdef, 5;	bonus bMaxHPrate, 4;	bonus bMaxSPrate, 4;	bonus bAllStats, 1;	break;
+	case 132:	bonus bDef, 6;	bonus bMdef, 6;	bonus bMaxHPrate, 5;	bonus bMaxSPrate, 5;	bonus bAllStats, 1;	break;
+	case 133:	bonus bDef, 6;	bonus bMdef, 6;	bonus bMaxHPrate, 6;	bonus bMaxSPrate, 6;	bonus bAllStats, 1;	break;
+	case 134:	bonus bDef, 6;	bonus bMdef, 6;	bonus bMaxHPrate, 7;	bonus bMaxSPrate, 7;	bonus bAllStats, 1;	break;
+	case 135:	bonus bDef, 6;	bonus bMdef, 6;	bonus bMaxHPrate, 8;	bonus bMaxSPrate, 8;	bonus bAllStats, 1;	break;
+	case 136:	bonus bDef, 6;	bonus bMdef, 6;	bonus bMaxHPrate, 9;	bonus bMaxSPrate, 9;	bonus bAllStats, 1;	break;
+	case 137:	bonus bDef, 7;	bonus bMdef, 7;	bonus bMaxHPrate, 9;	bonus bMaxSPrate, 9;	bonus bAllStats, 1;	break;
+	case 138:	bonus bDef, 8;	bonus bMdef, 8;	bonus bMaxHPrate, 10;	bonus bMaxSPrate, 10;	bonus bAllStats, 2;	break;
+
+	// โบนัส MVP
+	case 201:	bonus2 bAddRace, RC_Boss, 1; 	bonus2 bSubRace, RC_Boss, 1;	bonus bAtk, 5;	break;
+	case 202:	bonus2 bAddRace, RC_Boss, 1; 	bonus2 bSubRace, RC_Boss, 1;	bonus bAtk, 5;	bonus bMaxSP, 10;		break;
+	case 203:	bonus2 bAddRace, RC_Boss, 1; 	bonus2 bSubRace, RC_Boss, 1;	bonus bAtk, 5;	bonus bMaxSP, 20;		break;
+	case 204:	bonus2 bAddRace, RC_Boss, 1; 	bonus2 bSubRace, RC_Boss, 1;	bonus bAtk, 7;	bonus bMaxSP, 30;		break;
+	case 205:	bonus2 bAddRace, RC_Boss, 2; 	bonus2 bSubRace, RC_Boss, 2;	bonus bAtk, 7;	bonus bMaxSP, 40;		break;
+	case 206:	bonus2 bAddRace, RC_Boss, 2; 	bonus2 bSubRace, RC_Boss, 2;	bonus bAtk, 7;	bonus bMaxSP, 50;		break;
+	case 207:	bonus2 bAddRace, RC_Boss, 2; 	bonus2 bSubRace, RC_Boss, 2;	bonus bAtk, 11;	bonus bMaxSP, 60;		bonus bAllStats, 1;	break;
+	case 208:	bonus2 bAddRace, RC_Boss, 2; 	bonus2 bSubRace, RC_Boss, 2;	bonus bAtk, 13;	bonus bMaxSP, 70;		bonus bAllStats, 1;	break;
+	case 209:	bonus2 bAddRace, RC_Boss, 3; 	bonus2 bSubRace, RC_Boss, 3;	bonus bAtk, 15;	bonus bMaxSP, 80;		bonus bAllStats, 1;	break;
+	case 210:	bonus2 bAddRace, RC_Boss, 4; 	bonus2 bSubRace, RC_Boss, 4;	bonus bAtk, 17;	bonus bMaxSP, 90;		bonus bAllStats, 1;	break;
+	case 211:	bonus2 bAddRace, RC_Boss, 5; 	bonus2 bSubRace, RC_Boss, 5;	bonus bAtk, 19;	bonus bMaxSP, 100;	bonus bAllStats, 1;	break;
+	case 212:	bonus2 bAddRace, RC_Boss, 6; 	bonus2 bSubRace, RC_Boss, 6;	bonus bAtk, 21;	bonus bMaxSP, 110;	bonus bAllStats, 1;	break;
+	case 213:	bonus2 bAddRace, RC_Boss, 7;	bonus2 bSubRace, RC_Boss, 7;	bonus bAtk, 23;	bonus bMaxSP, 120;	bonus bAllStats, 1;	break;
+	case 214:	bonus2 bAddRace, RC_Boss, 8;	bonus2 bSubRace, RC_Boss, 8;	bonus bAtk, 25;	bonus bMaxSP, 130;	bonus bAllStats, 1;	break;
+	case 215:	bonus2 bAddRace, RC_Boss, 10;	bonus2 bSubRace, RC_Boss, 10;	bonus bAtk, 30;	bonus bMaxSP, 150;	bonus bAllStats, 2;	break;
+
+	// โบนัสพิเศษ
+	case 100000:	bonus bAllStats, 2;	bonus bMaxHPrate, 100;	bonus bMaxSPrate, 100;	break;
+	}
+
+	return;
+}
