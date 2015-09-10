@@ -1,0 +1,32 @@
+-	script	VendingSystem::VendingSystem	-1,{
+OnBuyItem:
+	mes "["+@vendor$+"]";
+	mes "รายการของที่ซื้อ";
+
+	for (set .@i, 0; .@i < getarraysize(@bought_nameid); set .@i, .@i + 1) {
+		mes ""+(.@i+1)+". ^007777"+getitemname(@bought_nameid[.@i])+"^000000"+((getiteminfo(@bought_nameid[.@i], 10) > 0)?"["+getiteminfo(@bought_nameid[.@i], 10)+"]":"")+" "+@bought_quantity[.@i]+" ea";
+	}
+
+	mes "ราคาทั้งหมด ^0033FF"+@price+"^000000 Z";
+	next;
+
+	mes "["+@vendor$+"]";
+	mes "ท่านต้องการซื้อของเหล่านี้?";
+
+	if (prompt("ยืนยัน:ยกเลิก") == 1)
+		purchasereq 1;
+	else
+		purchasereq 0;
+	
+	callsub S_Clean;
+	close;
+
+S_Clean:
+	set @vendor$, "";
+	set @count, 0;
+	set @price, 0;
+	set @aid, 0;
+	set @uid, 0;
+	
+	return;
+}

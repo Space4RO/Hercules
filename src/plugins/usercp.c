@@ -1,12 +1,16 @@
-#include "common/HPMi.h"
-#include "common/db.h"
-#include "map/script.h"
-#include "map/mob.h"
-#include "map/mapreg.h"
-#include "map/vending.h"
-#include "map/searchstore.h"
-#include "map/itemdb.h"
-#include "map/pc.h"
+#include "../common/HPMi.h"
+#include "../common/malloc.h"
+#include "../common/socket.h"
+#include "../common/db.h"
+#include "../map/map.h"
+#include "../map/mapreg.h"
+#include "../map/script.h"
+#include "../map/vending.h"
+#include "../map/searchstore.h"
+#include "../map/itemdb.h"
+#include "../map/mob.h"
+#include "../map/npc.h"
+#include "../map/pc.h"
 #include "../common/HPMDataCheck.h"
 
 
@@ -16,6 +20,9 @@
 
 static int itemdb_searchname_array(struct item_data** data, int size, const char *prefix, int type, int class1, int class2, int loc);
 
+static void vending_purchasereq(struct map_session_data* sd, int aid, unsigned int uid, int count);
+
+void hookPre_PurchaseReq2(int *fd, struct map_session_data *sd);
 
 BUILDIN(mobspawn_getdata) {
 	int i, j, cdx = 0, count = 0;
@@ -151,7 +158,21 @@ BUILDIN(searchstores_getdata) {
 
 		letters++;
 	}
+
 	dbi_destroy(iter);
+	return true;
+}
+
+BUILDIN(purchasereq) {
+	int type = script_getnum(st, 2);
+	struct map_session_data *sd;
+
+	if ((sd = script->rid2sd(st))) {
+		if (type = 1)
+			vending_purchasereq(sd, pc->readreg(sd, script->add_str("@aid")), pc->readreg(sd, script->add_str("@uid")), pc->readreg(sd, script->add_str("@count")));
+		sd->vended_id = 0;
+		removeFromSession(session[sd->fd], HPMi->pid);
+	}
 
 	return true;
 }
@@ -160,26 +181,41 @@ BUILDIN(searchstores_getdata) {
 HPExport struct hplugin_info pinfo = {
 	"UserCP",
 	SERVER_TYPE_MAP,
-	"2.0",
+	"3.0",
 	HPM_VERSION,
 };
 
 HPExport void plugin_init(void) {
+	iMalloc = GET_SYMBOL("iMalloc");
 	DB = GET_SYMBOL("DB");
-	script = GET_SYMBOL("script");
-	mob = GET_SYMBOL("mob");
+	session = GET_SYMBOL("session");
+	map = GET_SYMBOL("map");
 	mapreg = GET_SYMBOL("mapreg");
+	script = GET_SYMBOL("script");
 	vending = GET_SYMBOL("vending");
 	searchstore = GET_SYMBOL("searchstore");
 	itemdb = GET_SYMBOL("itemdb");
+	mob = GET_SYMBOL("mob");
+	npc = GET_SYMBOL("npc");
+	pc = GET_SYMBOL("pc");
+
+	addHookPre("clif->pPurchaseReq2", hookPre_PurchaseReq2);
 
 	addScriptCommand("mobspawn_getdata", "is", mobspawn_getdata);
 
 	addScriptCommand("searchstores_query", "ii", searchstores_query);
 	addScriptCommand("searchstores_getdata", "iiii", searchstores_getdata);
+
+	addScriptCommand("purchasereq", "i", purchasereq);
 }
 
 
+/*==========================================
+* Founds up to N matches. Returns number of matches [Skotlex]
+* search flag :
+* 0 - approximate match
+* 1 - exact match
+*------------------------------------------*/
 int itemdb_searchname_array(struct item_data** data, int size, const char *prefix, int type, int class1, int class2, int loc) {
 	struct item_data *item;
 	int i, count = 0;
@@ -231,4 +267,66 @@ int itemdb_searchname_array(struct item_data** data, int size, const char *prefi
 	}
 
 	return count;
+}
+
+/*==========================================
+* Purchase item(s) from a shop
+*------------------------------------------*/
+void vending_purchasereq(struct map_session_data *sd, int aid, unsigned int uid, int count) {
+	struct map_session_data* vsd = map->id2sd(aid);
+	const uint8 *data;
+
+	if (sd && vsd 
+		&& (data = getFromSession(session[sd->fd], HPMi->pid))
+	) {
+		vending->purchase(sd, aid, uid, data, count);
+	}
+}
+
+/// Shop item(s) purchase request (CZ_PC_PURCHASE_ITEMLIST_FROMMC2).
+/// 0801 <packet len>.W <account id>.L <unique id>.L { <amount>.W <index>.W }*
+void hookPre_PurchaseReq2(int *fd, struct map_session_data *sd) {
+	int len = (int)RFIFOW(*fd, 2) - 12;
+	int aid = (int)RFIFOL(*fd, 4);
+	int uid = (int)RFIFOL(*fd, 8);
+	const uint8 *data = (uint8 *)RFIFOP(*fd, 12);
+
+	struct map_session_data *vsd = map->id2sd(aid);
+	struct npc_data *nd = npc->name2id("VendingSystem");
+	int i, j, key_nameid = 0, key_amount = 0;
+	uint8 **vended;
+
+	if (vsd && sd && nd) {
+		int count = len / 4;
+		int k = 0;
+
+		script->cleararray_pc(sd, "@bought_nameid", (void *)0);
+		script->cleararray_pc(sd, "@bought_quantity", (void *)0);
+
+		for (i = 0; i < count; i++) {
+			short amount = *(uint16*)(data + 4 * i + 0);
+			short idx = *(uint16*)(data + 4 * i + 2);
+
+			idx -= 2;
+
+			ARR_FIND(0, vsd->vend_num, j, vsd->vending[j].index == idx);
+			if (j < vsd->vend_num)
+				k += (vsd->vending[j].value * amount);
+
+			script->setarray_pc(sd, "@bought_nameid", i, (void *)(intptr_t)vsd->status.cart[idx].nameid, &key_nameid);
+			script->setarray_pc(sd, "@bought_quantity", i, (void *)(intptr_t)amount, &key_amount);
+		}
+
+		CREATE(vended, uint8 *, count);
+		memcpy(vended, data, sizeof(uint8 *) * count);
+		pc->setregstr(sd, script->add_str("@vendor$"), vsd->message);
+		pc->setreg(sd, script->add_str("@aid"), aid);
+		pc->setreg(sd, script->add_str("@uid"), uid);
+		pc->setreg(sd, script->add_str("@count"), count);
+		pc->setreg(sd, script->add_str("@price"), k);
+		addToSession(session[sd->fd], vended, HPMi->pid, true);
+
+		npc->event(sd, "VendingSystem::OnBuyItem", 0);
+		hookStop();
+	}
 }
