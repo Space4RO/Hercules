@@ -27,6 +27,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "plugin-usercp", "vcproj-12\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "plugin-reputation", "vcproj-12\plugin-reputation.vcxproj", "{34BA053E-73F9-42BD-BAE4-74DD257E5AA9}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "plugin-ai", "vcproj-12\plugin-ai.vcxproj", "{D077FDD4-BC34-4C71-8ACE-6C45C6305327}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -81,6 +83,10 @@ Global
 		{34BA053E-73F9-42BD-BAE4-74DD257E5AA9}.Debug|Win32.Build.0 = Debug|Win32
 		{34BA053E-73F9-42BD-BAE4-74DD257E5AA9}.Release|Win32.ActiveCfg = Release|Win32
 		{34BA053E-73F9-42BD-BAE4-74DD257E5AA9}.Release|Win32.Build.0 = Release|Win32
+		{D077FDD4-BC34-4C71-8ACE-6C45C6305327}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D077FDD4-BC34-4C71-8ACE-6C45C6305327}.Debug|Win32.Build.0 = Debug|Win32
+		{D077FDD4-BC34-4C71-8ACE-6C45C6305327}.Release|Win32.ActiveCfg = Release|Win32
+		{D077FDD4-BC34-4C71-8ACE-6C45C6305327}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

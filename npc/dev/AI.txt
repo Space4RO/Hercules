@@ -1,0 +1,130 @@
+-	script	AI::AI	-1,{
+OnInit:
+	bindatcmd "auto", strnpcinfo(3) + "::OnPCUsedCMD";
+	end;
+
+OnPCUsedCMD:
+	if (!@state) {
+		mes "[AI System]";
+		mes "กรุณาเลือกโหมด";
+		switch (select("จ่อวาร์ป:บา:แด้น")) {
+			case 1: {
+				set @ai, 1;
+				set @targetX, 137;
+				set @targetY, 114;
+				callsub S_Attach;	
+			}
+			break;
+			case 2:
+				set @ai, 2;
+				callsub S_Attach;
+			break;
+			case 3:
+				set @ai, 3;
+				callsub S_Attach;
+			break;
+		}
+	}
+	else {
+		callsub S_Deattach;
+	}
+	
+	close;
+
+
+OnThinkedEvent:
+	set .@GID, $@GID;
+	
+	switch (@ai) {
+		case 1:  { // จ่อวาป
+			getmapxy .@map$, .@x, .@y, 0;
+
+			if (@targetX > 0 && @targetY > 0) {
+				set .@dist, distance(@targetX, @targetY, .@x, .@y);
+				
+				if (.@dist > 8) {
+					if (.@dist > 16)
+						unitwalk .@GID, .@x + rand(10, 15), @targetY + rand(-2, 2);
+					else
+						unitwalk .@GID, @targetX, @targetY;
+				}
+				else {
+					/* เดินเข้าวาปตามกำหนดเปิด  */
+					if (gettime(3) == 2 && gettime(2)  >= 10 && rand(100) < 90) {
+						if (compare(.@map$, "new_1-2")) {
+							if (@targetX > 0 && @targetY > 0) {
+								unitwalk .@GID, @targetX, @targetY;
+								set @targetX, 0;
+								set @targetY, 0;
+								sleep2 2000;
+								warp "new_1-3", 94, 25;
+							}
+						}						
+						else {
+							set @targetX, rand(97, 102);
+							set @targetY, rand(23, 27);
+							unitwalk .@GID, 148, 112;
+						}
+						break;
+					}
+
+					/* เมื่ออยู่ไกล้จุดหมายแล้วจะเดินเล่นต่อ */
+					if (rand(100) < 5) {
+						set .@point_x, @targetX + rand(1000)%(8*2+1)-8;
+						set .@point_y, @targetY + rand(1000)/(8*2+1)%(8*2+1)-8;
+						
+						if (!checkcell(.@map$, .@point_x, .@point_y, cell_walkable))
+							unitwalk .@GID, .@point_x, .@point_y;
+					}
+				}
+			}
+		}
+		break;
+		case 2: {
+			if(@skilltick == 0) {
+				percentheal 100, 100;
+				unitskilluseid .@GID, 321, 10;
+				set @skilltick, gettimetick(0);
+			}
+			else if ((gettimetick(0) - @skilltick) > 180000) {
+				unitskilluseid .@GID, 304, 1;
+				set @skilltick, 0;
+			}
+		}
+		break;
+		case 3: {
+			if(@skilltick == 0) {
+				percentheal 100, 100;
+				unitskilluseid .@GID, 330, 10;
+				set @skilltick, gettimetick(0);
+			}
+			else if ((gettimetick(0) - @skilltick) > 180000) {
+				unitskilluseid .@GID, 304, 1;
+				set @skilltick, 0;
+			}
+		}
+		break;
+	}
+
+	end;
+
+S_Attach:
+	next;
+	mes "[AI System]";
+	mes "คุณต้องการออกจากเกมหรือไม่?";
+	set .@flag, (select("ใช่:ไม่") == 1) ? 1 : 0;
+	set @state, 1;
+
+	close2;
+	ai.@flag;
+	dispbottom "AI : เริ่มการทำงานระบบออโต้";
+	
+
+	end;
+
+S_Deattach:
+	set @state, 0;
+	dispbottom "AI : หยุดการทำงานระบบออโต้";
+	ai 0;
+	end;
+}
