@@ -176,7 +176,7 @@ BUILDIN(purchasereq) {
 	struct map_session_data *sd;
 
 	if ((sd = script->rid2sd(st))) {
-		if (type = 1)
+		if (type == 1)
 			vending_purchasereq(sd, pc->readreg(sd, script->add_str("@aid")), pc->readreg(sd, script->add_str("@uid")), pc->readreg(sd, script->add_str("@count")));
 		sd->vended_id = 0;
 		removeFromMSD(sd, HPMi->pid);
