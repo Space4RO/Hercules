@@ -13,6 +13,7 @@
 #include "../map/pc.h"
 #include "../common/HPMDataCheck.h"
 
+#include <stdlib.h>
 
 #define MAX_MOBSPAWN_SEARCH		0x0100
 #define MAX_SEARCHSTORE_SEARCH	0x1000

@@ -13,6 +13,7 @@
 #include "../map/mob.h"
 #include "../common/HPMDataCheck.h"
 
+#include <stdlib.h>
 
 static void clif_charnameack(int *fd, struct block_list *bl);
 static void clif_charnameupdate(struct map_session_data *ssd);
@@ -212,7 +213,6 @@ int mob_dead(int retVal, struct mob_data *md, struct block_list *src, int *type)
 void status_calc_bl_main(struct block_list *bl, int *flag) {
 	if (*flag&SCB_BASE && bl && bl->type == BL_PC) {
 		struct map_session_data *sd = BL_CAST(BL_PC, bl);
-		struct status_data *bst = status->get_base_status(bl);
 		struct event_data* ev = (struct event_data*)strdb_get(npc->ev_db, "ReputationSystem::OnCalcBonus");
 
 		if (ev) {
