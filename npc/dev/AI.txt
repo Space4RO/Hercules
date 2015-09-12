@@ -10,8 +10,8 @@ OnPCUsedCMD:
 		switch (select("จ่อวาร์ป:บา:แด้น")) {
 			case 1: {
 				set @ai, 1;
-				set @targetX, 137;
-				set @targetY, 114;
+				set @targetX, 132;
+				set @targetY, 112;
 				callsub S_Attach;	
 			}
 			break;
@@ -54,7 +54,7 @@ OnThinkedEvent:
 
 				if (.@dist > 8) {
 					if (.@dist > 16)
-						unitwalk .@GID, rand(.@x + 10, .@x + 15), @targetY;
+						unitwalk .@GID, .@x + rand(5, 12), @targetY;
 					else
 						unitwalk .@GID, @targetX, @targetY;
 				}
@@ -70,7 +70,7 @@ OnThinkedEvent:
 				}
 
 				/* เดินเข้าวาปตามกำหนดเปิด  */
-				if (gettime(3) == 9 && gettime(2)  >= 0) {
+				if (gettime(3) == 9 && gettime(2)  >= 37) {
 					if (compare(.@map$, "new_1-2")) {
 						if (@targetX > 0 && @targetY > 0) {
 							unitwalk .@GID, @targetX, @targetY;
