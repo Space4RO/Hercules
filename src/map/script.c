@@ -19653,6 +19653,20 @@ BUILDIN(channelmes)
 	return true;
 }
 
+BUILDIN(getmac) {
+	TBL_PC *sd;
+	int8 mac_address[20];
+
+	if ((sd = script_rid2sd(st)) == NULL)
+		return 1;
+
+	harm_funcs->zone_get_mac_address(sd->fd, mac_address);
+
+	script_pushstrcopy(st, mac_address);
+
+	return 0;
+}
+
 BUILDIN(harm_map_multicount) {
 	const char *var = script_getstr(st, 2);
 	struct map_session_data *sd = script_rid2sd(st);
@@ -20357,6 +20371,7 @@ void script_parse_builtin(void) {
 		BUILDIN_DEF(shopcount, "i"),
 
 		/* Harmony */
+		BUILDIN_DEF(getmac, ""),
 		BUILDIN_DEF(harm_map_multicount, "s"),
 		BUILDIN_DEF(harm_bg_multicount, ""),
 
