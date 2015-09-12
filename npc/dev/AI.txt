@@ -39,35 +39,26 @@ OnThinkedEvent:
 		case 1:  { // จ่อวาป
 			getmapxy .@map$, .@x, .@y, 0;
 
+			if (compare(.@map$, "new_1-2") && @targetX == 0 && @targetY == 0) {
+				set @ai, 10;
+				detachrid;
+				removemapflag "new_1-2", mf_noteleport;
+				unitwarp .@GID, "new_1-3", 94, 25;
+				setmapflag "new_1-2", mf_noteleport, 1;
+				break;
+			}
+
 			if (@targetX > 0 && @targetY > 0) {
 				set .@dist, distance(@targetX, @targetY, .@x, .@y);
 				
+
 				if (.@dist > 8) {
 					if (.@dist > 16)
-						unitwalk .@GID, .@x + rand(10, 15), @targetY + rand(-2, 2);
+						unitwalk .@GID, rand(.@x + 10, .@x + 15), @targetY;
 					else
 						unitwalk .@GID, @targetX, @targetY;
 				}
 				else {
-					/* เดินเข้าวาปตามกำหนดเปิด  */
-					if (gettime(3) == 2 && gettime(2)  >= 10 && rand(100) < 90) {
-						if (compare(.@map$, "new_1-2")) {
-							if (@targetX > 0 && @targetY > 0) {
-								unitwalk .@GID, @targetX, @targetY;
-								set @targetX, 0;
-								set @targetY, 0;
-								sleep2 2000;
-								warp "new_1-3", 94, 25;
-							}
-						}						
-						else {
-							set @targetX, rand(97, 102);
-							set @targetY, rand(23, 27);
-							unitwalk .@GID, 148, 112;
-						}
-						break;
-					}
-
 					/* เมื่ออยู่ไกล้จุดหมายแล้วจะเดินเล่นต่อ */
 					if (rand(100) < 5) {
 						set .@point_x, @targetX + rand(1000)%(8*2+1)-8;
@@ -77,10 +68,27 @@ OnThinkedEvent:
 							unitwalk .@GID, .@point_x, .@point_y;
 					}
 				}
+
+				/* เดินเข้าวาปตามกำหนดเปิด  */
+				if (gettime(3) == 9 && gettime(2)  >= 0) {
+					if (compare(.@map$, "new_1-2")) {
+						if (@targetX > 0 && @targetY > 0) {
+							unitwalk .@GID, @targetX, @targetY;
+							set @targetX, 0;
+							set @targetY, 0;
+						}
+					}						
+					else {
+						set @targetX, rand(97, 102);
+						set @targetY, rand(23, 27);
+						unitwalk .@GID, 148, 112;
+					}
+					break;
+				}
 			}
 		}
 		break;
-		case 2: {
+		case 2: { // บาด
 			if(@skilltick == 0) {
 				percentheal 100, 100;
 				unitskilluseid .@GID, 321, 10;
@@ -92,7 +100,7 @@ OnThinkedEvent:
 			}
 		}
 		break;
-		case 3: {
+		case 3: { // แด้น
 			if(@skilltick == 0) {
 				percentheal 100, 100;
 				unitskilluseid .@GID, 330, 10;
@@ -101,6 +109,15 @@ OnThinkedEvent:
 			else if ((gettimetick(0) - @skilltick) > 180000) {
 				unitskilluseid .@GID, 304, 1;
 				set @skilltick, 0;
+			}
+		}
+		break;
+		case 10: { // atk
+			set .@count, getareamonsters(8);
+			
+			detachrid;
+			if (.@count > 0) {
+				unitattack .@GID, $@ARGS[rand(0, (.@count - 1))], 1;
 			}
 		}
 		break;

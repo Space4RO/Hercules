@@ -9,6 +9,7 @@
 #include "../map/clif.h"
 #include "../map/chrif.h"
 #include "../map/script.h"
+#include "../map/unit.h"
 #include "../map/npc.h"
 #include "../map/pc.h"
 #include "../common/HPMDataCheck.h"
@@ -16,6 +17,8 @@
 
 struct ai_data {
 	struct block_list *bl;
+	struct script_state *st;
+
 	int64 last_thinktime;
 };
 
@@ -23,7 +26,9 @@ struct ai_data {
 // Min time between AI executions
 #define MIN_AI_THINKTIME	1000
 
-static int chrif_disconnectplayer(int retVal, int *fd);
+static int chrif_disconnectplayer(int *fd);
+static void clif_quitsave(int *fd, struct map_session_data *sd);
+static int pc_setpos(int retVal, struct map_session_data *sd, unsigned short *map_index, int *x, int *y, clr_type *clrtype);
 
 static int ai_timer(int tid, int64 tick, int id, intptr_t data);
 static int ai_timer_sub(struct block_list *bl, va_list ap);
@@ -48,23 +53,46 @@ BUILDIN(ai) {
 	if ((sd = script->rid2sd(st))
 	&& !(ad = getFromMSD(sd, HPMi->pid))
 	) {
-		CREATE(ad, struct ai_data, 1);
-		ad->bl = &sd->bl;
-
-		idb_put(ai_db, sd->bl.id, &sd->bl);
-		addToMSD(sd, ad, HPMi->pid, true);
-
 		if (flag) {
 			clif->authfail_fd(sd->fd, 15);
-			session[sd->fd]->session_data = NULL;
-			sd->fd = 0;
 		}
+
+		CREATE(ad, struct ai_data, 1);
+		ad->bl = &sd->bl;
+		addToMSD(sd, ad, HPMi->pid, true);
+		idb_put(ai_db, sd->bl.id, &sd->bl);
 	}
 	else {
 		idb_remove(ai_db, sd->bl.id);
 		removeFromMSD(sd, HPMi->pid);
 	}
 
+	return true;
+}
+
+int buildin_getareamonsters_sub(struct block_list *bl, va_list ap) {
+	int *count = va_arg(ap, int *);
+	mapreg->setreg(reference_uid(script->add_str("$@ARGS"), *count), bl->id);
+	*count += 1;
+	return 0;
+}
+
+BUILDIN(getareamonsters) {
+	struct map_session_data *sd = script->rid2sd(st);
+	int range = script_getnum(st, 2);
+	int x0, y0, x1, y1;
+	int count = 0;
+
+	if (sd) {
+		x0 = sd->bl.x - range;
+		y0 = sd->bl.y - range;
+		x1 = sd->bl.x + range;
+		y1 = sd->bl.y + range;
+
+		map->foreachinarea(buildin_getareamonsters_sub, sd->bl.m, x0, y0, x1, y1, BL_MOB, &count);
+	}
+
+	script_pushint(st, count);
 	return true;
 }
 
@@ -80,12 +108,16 @@ HPExport void plugin_init(void) {
 	clif = GET_SYMBOL("clif");
 	chrif = GET_SYMBOL("chrif");
 	script = GET_SYMBOL("script");
+	unit = GET_SYMBOL("unit");
 	npc = GET_SYMBOL("npc");
 	pc = GET_SYMBOL("pc");
 
 	addScriptCommand("ai", "i", ai);
+	addScriptCommand("getareamonsters", "i", getareamonsters);
 
-	addHookPost("chrif->disconnectplayer", chrif_disconnectplayer);
+	addHookPre("clif->quitsave", clif_quitsave);
+	addHookPre("chrif->disconnectplayer", chrif_disconnectplayer);
+	addHookPost("pc->setpos", pc_setpos);
 }
 
 
@@ -103,12 +135,37 @@ HPExport void server_post_final(void) {
 	db_destroy(ai_db);
 }
 
-int chrif_disconnectplayer(int retVal, int *fd) {
-	struct map_session_data *sd = map->id2sd(RFIFOL(*fd, 2));
+int chrif_disconnectplayer(int *fd) {
+	struct map_session_data *sd;
+	struct ai_data *ad;
+	int account_id = RFIFOL(*fd, 2);
+
+	sd = map->id2sd(account_id);
+
+	if (sd && (ad = getFromMSD(sd, HPMi->pid))) {
+		removeFromMSD(sd, HPMi->pid);
+		idb_remove(ai_db, sd->bl.id);
+		map->quit(sd);
+	}
+
+	return 0;
+}
+
+void clif_quitsave(int *fd, struct map_session_data *sd) {
 	struct ai_data *ad;
 
-	if (sd && (ad = getFromSession(sd, HPMi->pid))) {
-		map->quit(sd);
+	if (sd && (ad = getFromMSD(sd, HPMi->pid))) {
+		session[*fd]->session_data = NULL;
+		sd->fd = 0;
+		hookStop();
+	}
+}
+
+int pc_setpos(int retVal, struct map_session_data *sd, unsigned short *map_index, int *x, int *y, clr_type *clrtype) {
+	struct ai_data *ad;
+
+	if (sd && (ad = getFromMSD(sd, HPMi->pid))) {
+		clif->pLoadEndAck(0, sd);
 	}
 
 	return retVal;
@@ -130,12 +187,10 @@ int ai_timer_sub(struct block_list *bl, va_list ap) {
 	if (sd && ev
 	&& (ad = getFromMSD(sd, HPMi->pid))
 	&& (DIFF_TICK(ad->last_thinktime, tick) < MIN_AI_THINKTIME)
+	&& (DIFF_TICK(sd->ud.attackabletime, tick) < 0)
 	) {
-		if (ad->bl == NULL)
-			return -1;
-
-		mapreg->setreg(script->add_str("$@GID"), ad->bl->id);
-		script->run(ev->nd->u.scr.script, ev->pos, ad->bl->id, ev->nd->bl.id);
+		mapreg->setreg(script->add_str("$@GID"), sd->bl.id);
+		script->run(ev->nd->u.scr.script, ev->pos, sd->bl.id, ev->nd->bl.id);
 	}
 
 	return 1;
