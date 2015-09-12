@@ -4,6 +4,7 @@
 #include "../common/socket.h"
 #include "../common/db.h"
 #include "../common/utils.h"
+#include "../common/strlib.h"
 #include "../map/clif.h"
 #include "../map/map.h"
 #include "../map/mapreg.h"
@@ -382,6 +383,7 @@ HPExport void plugin_init(void) {
 	iMalloc = GET_SYMBOL("iMalloc");
 	sockt = GET_SYMBOL("sockt");
 	DB = GET_SYMBOL("DB");
+	strlib = GET_SYMBOL("strlib");
 	session = GET_SYMBOL("session");
 	clif = GET_SYMBOL("clif");
 	map = GET_SYMBOL("map");
