@@ -111,7 +111,7 @@ ACMD(mobinfo2) {
 		}
 
 		// stats
-		sprintf(atcmd_output, "ข้อมูลทั่วไปของ %s (%d)", monster->name, monster->vd.class_);
+		sprintf(atcmd_output, "%s (%d)", monster->name, monster->vd.class_);
 		clif->scriptmes(sd, 0, atcmd_output);
 
 		sprintf(atcmd_output, "Level: %d HP: %d SP: %d", monster->lv, monster->status.max_hp, monster->status.max_sp);
@@ -148,7 +148,7 @@ ACMD(mobinfo2) {
 		clif->scriptmes(sd, 0, atcmd_output);
 
 		// drops
-		clif->scriptmes(sd, 0, "รายการดอปไอเท็ม");
+		clif->scriptmes(sd, 0, "Drops");
 			strcpy(atcmd_output, " ");
 		j = 0;
 		for (i = 0; i < MAX_MOB_DROP; i++) {
