@@ -3953,6 +3953,13 @@ int run_func(struct script_state *st)
 	struct script_data* data;
 	int i,start_sp,end_sp,func;
 
+	if (st->stack == NULL) {
+		ShowError("script:run_func: stack is null. please report this!!!\n");
+		script->reportsrc(st);
+		st->state = END;
+		return 1;
+	}
+
 	end_sp = st->stack->sp;// position after the last argument
 	for( i = end_sp-1; i > 0 ; --i )
 		if( st->stack->stack_data[i].type == C_ARG )

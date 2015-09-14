@@ -1461,22 +1461,15 @@ int npc_cashshop_buylist(struct map_session_data *sd, int points, int count, uns
 //npc_buylist for script-controlled shops.
 int npc_buylist_sub(struct map_session_data* sd, int n, unsigned short* item_list, struct npc_data* nd)
 {
-	struct npc_data *master_nd;
 	char npc_ev[EVENT_NAME_LENGTH];
-	int i, j;
+	int i;
 	int key_nameid = 0;
 	int key_amount = 0;
-	int key_value = 0;
-
-	if (nd->master_nd)
-		master_nd = nd->master_nd;
-	else
-		master_nd = nd;
 
 	// discard old contents
 	script->cleararray_pc(sd, "@bought_nameid", (void*)0);
 	script->cleararray_pc(sd, "@bought_quantity", (void*)0);
-	script->cleararray_pc(sd, "@bought_value", (void*)0);
+	
 
 	// save list of bought items
 	for( i = 0; i < n; i++ ) {
@@ -1484,13 +1477,10 @@ int npc_buylist_sub(struct map_session_data* sd, int n, unsigned short* item_lis
 
 		script->setarray_pc(sd, "@bought_nameid", i, (void*)(intptr_t)item_list[i*2+1], &key_nameid);
 		script->setarray_pc(sd, "@bought_quantity", i, (void*)(intptr_t)item_list[i*2], &key_amount);
-
-		ARR_FIND(0, nd->u.shop.count, j, nd->u.shop.shop_item[j].nameid == nameid);
-		script->setarray_pc(sd, "@bought_value", i, (void*)(intptr_t)nd->u.shop.shop_item[j].value, &key_value);
 	}
 
 	// invoke event
-	snprintf(npc_ev, ARRAYLENGTH(npc_ev), "%s::OnBuyItem", master_nd->exname);
+	snprintf(npc_ev, ARRAYLENGTH(npc_ev), "%s::OnBuyItem", nd->exname);
 	npc->event(sd, npc_ev, 0);
 
 	return 0;
@@ -1847,6 +1837,8 @@ int npc_buylist(struct map_session_data* sd, int n, unsigned short* item_list) {
 		amount = item_list[i*2+0];
 		nameid = item_list[i*2+1] = shop[j].nameid; //item_avail replacement
 		value = shop[j].value;
+
+
 		
 		if( !itemdb->exists(nameid) )
 			return 3; // item no longer in itemdb
@@ -1882,7 +1874,7 @@ int npc_buylist(struct map_session_data* sd, int n, unsigned short* item_list) {
 	}
 	
 	if( nd->master_nd != NULL ) //Script-based shops.
-		return npc->buylist_sub(sd,n,item_list,nd);
+		return npc->buylist_sub(sd,n,item_list,nd->master_nd);
 	
 	if( z > (double)sd->status.zeny )
 		return 1; // Not enough Zeny
