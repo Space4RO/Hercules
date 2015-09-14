@@ -1,18 +1,21 @@
-#include "common/HPMi.h"
-#include "common/socket.h"
-#include "common/mapindex.h"
+#include "../common/HPMi.h"
+#include "../common/socket.h"
+#include "../common/mapindex.h"
+#include "../common/strlib.h"
+#include "../common/sql.h"
 
-#include "char/char.h"
+#include "../char/char.h"
+#include "../char/inter.h"
 
 #undef DEFAULT_AUTOSAVE_INTERVAL
-#include "map/clif.h"
-#include "map/chrif.h"
-#include "map/itemdb.h"
-#include "map/map.h"
-#include "map/pc.h"
-#include "map/atcommand.h"
+#include "../map/clif.h"
+#include "../map/chrif.h"
+#include "../map/itemdb.h"
+#include "../map/map.h"
+#include "../map/pc.h"
+#include "../map/atcommand.h"
 
-#include "common/HPMDataCheck.h"
+#include "../common/HPMDataCheck.h"
 
 #include <stdlib.h>
 
@@ -28,11 +31,15 @@ struct admin_cp admincp;
 
 
 int char_count_users(void) {
-	int i, users = 0;
+	int i, users = 0, total = 0;
 	for (i = 0; i < ARRAYLENGTH(chr->server); i++) {
 		if (chr->server[i].fd > 0) {
 			users += chr->server[i].users;
 			users += admincp.fake_users[i];
+
+			if (SQL_ERROR == SQL->Query(inter->sql_handle, "UPDATE `online` SET `total` = '%d' WHERE `server` = '%d'", users, i)) {
+				Sql_ShowDebug(inter->sql_handle);
+			}
 		}
 	}
 	return users;
@@ -87,6 +94,53 @@ ACMD(fakeuser) {
 	admincp.fake_users[0] += num;
 	if (admincp.fake_users[0] < 0)
 		admincp.fake_users[0] = 0;
+
+	return true;
+}
+
+ACMD(realusers) {
+	char buf[CHAT_SIZE_MAX];
+	int users[MAX_MAPINDEX];
+	int users_all;
+	struct s_mapiterator* iter;
+
+	memset(users, 0, sizeof(users));
+	users_all = 0;
+
+	// count users on each map
+	iter = mapit_getallusers();
+	for (;;)
+	{
+		struct map_session_data* sd2 = (struct map_session_data*)mapit->next(iter);
+		if (sd2 == NULL)
+			break;// no more users
+
+		if (sd2->mapindex >= MAX_MAPINDEX)
+			continue;// invalid mapindex
+
+		if (sd2->state.autotrade)
+			continue;
+
+		if (users[sd2->mapindex] < INT_MAX) ++users[sd2->mapindex];
+		if (users_all < INT_MAX) ++users_all;
+	}
+	mapit->free(iter);
+
+	if (users_all) {
+		int i;
+		// display results for each map
+		for (i = 0; i < MAX_MAPINDEX; ++i) {
+			if (users[i] == 0)
+				continue; // empty
+
+			safesnprintf(buf, sizeof(buf), "%s: %d (%.2f%%)", mapindex_id2name(i), users[i], (float)(100.0f*users[i] / users_all));
+			clif->message(sd->fd, buf);
+		}
+	}
+
+	// display overall count
+	safesnprintf(buf, sizeof(buf), "all: %d", users_all);
+	clif->message(sd->fd, buf);
 
 	return true;
 }
@@ -198,7 +252,7 @@ ACMD(itemmap) {
 
 HPExport struct hplugin_info pinfo = {
 	"AdminCP",
-	SERVER_TYPE_CHAR|SERVER_TYPE_MAP,
+	SERVER_TYPE_CHAR | SERVER_TYPE_MAP,
 	"1.1",
 	HPM_VERSION,
 };
@@ -209,12 +263,14 @@ HPExport void plugin_init(void) {
 
 	sockt = GET_SYMBOL("sockt");
 	mapindex = GET_SYMBOL("mapindex");
-
+	strlib = GET_SYMBOL("strlib");
 	session = GET_SYMBOL("session");
+	SQL = GET_SYMBOL("SQL");
 
 	switch (*server_type) {
 	case SERVER_TYPE_CHAR:
 		chr = GET_SYMBOL("chr");
+		inter = GET_SYMBOL("inter");
 
 		chr->count_users = &char_count_users;
 		chr->parse_frommap_set_users_count = &char_frommap_set_users_count;
@@ -229,6 +285,7 @@ HPExport void plugin_init(void) {
 		atcommand = GET_SYMBOL("atcommand");
 
 		addAtcommand("fakeuser", fakeuser);
+		addAtcommand("realusers", realusers);
 		addAtcommand("recallmap", recallmap);
 		addAtcommand("itemmap", itemmap);
 

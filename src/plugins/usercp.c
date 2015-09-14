@@ -1,5 +1,6 @@
 #include "../common/HPMi.h"
 #include "../common/malloc.h"
+#include "../common/nullpo.h"
 #include "../common/timer.h"
 #include "../common/socket.h"
 #include "../common/db.h"
@@ -30,6 +31,7 @@
 
 static int itemdb_searchname_array(struct item_data** data, int size, const char *prefix, int type, int class1, int class2, int loc);
 static void vending_purchasereq(struct map_session_data* sd, int aid, unsigned int uid, int count);
+static int npc_buylist(struct map_session_data* sd, int *n, unsigned short *item_list);
 
 static void clif_parse_PurchaseReq2(int *fd, struct map_session_data *sd);
 
@@ -226,6 +228,30 @@ ACMD(mobinfo2) {
 	return true;
 }
 
+ACMD(load2) {
+	int16 m;
+	int x, y;
+
+	m = map->mapindex2mapid(sd->status.save_point.map);
+	if (m >= 0 && map->list[m].flag.nowarpto && !pc_has_permission(sd, PC_PERM_WARP_ANYWHERE)) {
+		clif->message(fd, msg_fd(fd, 249)); // You are not authorized to warp to your save map.
+		return false;
+	}
+	if (sd->bl.m >= 0 && map->list[sd->bl.m].flag.nowarp && !pc_has_permission(sd, PC_PERM_WARP_ANYWHERE)) {
+		clif->message(fd, msg_fd(fd, 248)); // You are not authorized to warp from your current map.
+		return false;
+	}
+
+	x = sd->status.save_point.x + rand() % (3 * 2 + 1) - 3;
+	y = sd->status.save_point.y + rand() / (3 * 2 + 1) % (3 * 2 + 1) - 3;
+
+	pc->setpos(sd, sd->status.save_point.map, x, y, CLR_OUTSIGHT);
+	clif->message(fd, msg_fd(fd, 7)); // Warping to save point..
+
+	return true;
+}
+
+
 BUILDIN(mobspawn_getdata) {
 	int i, j, cdx = 0, count = 0;
 	char buf[MESSAGE_SIZE];
@@ -381,6 +407,7 @@ BUILDIN(purchasereq) {
 
 HPExport void plugin_init(void) {
 	iMalloc = GET_SYMBOL("iMalloc");
+	nullpo = GET_SYMBOL("nullpo");
 	sockt = GET_SYMBOL("sockt");
 	DB = GET_SYMBOL("DB");
 	strlib = GET_SYMBOL("strlib");
@@ -400,8 +427,10 @@ HPExport void plugin_init(void) {
 	party = GET_SYMBOL("party");
 
 	addHookPre("clif->pPurchaseReq2", clif_parse_PurchaseReq2);
+	addHookPre("npc->buylist", npc_buylist);
 
 	addAtcommand("mobinfo2", mobinfo2);
+	addAtcommand("load2", load2);
 	addScriptCommand("mobspawn_getdata", "is", mobspawn_getdata);
 	addScriptCommand("searchstores_query", "ii", searchstores_query);
 	addScriptCommand("searchstores_getdata", "iiii", searchstores_getdata);
@@ -480,6 +509,35 @@ void vending_purchasereq(struct map_session_data *sd, int aid, unsigned int uid,
 	) {
 		vending->purchase(sd, aid, uid, data, count);
 	}
+}
+
+
+int npc_buylist(struct map_session_data *sd, int *n, unsigned short *item_list) {
+	struct npc_data* nd;
+	struct npc_item_list *shop = NULL;
+	unsigned short shop_size = 0;
+	int i, j;
+	int key_value = 0;
+
+	nullpo_retr(3, sd);
+	nullpo_retr(3, item_list);
+
+	if ((nd = npc->checknear(sd, map->id2bl(sd->npc_shopid)))) {
+		if (nd->subtype == SHOP) {
+			shop = nd->u.shop.shop_item;
+			shop_size = nd->u.shop.count;
+			script->cleararray_pc(sd, "@bought_value", (void*)0);
+
+			for (i = 0; i < *n; i++) {
+				ARR_FIND(0, shop_size, j, item_list[i * 2 + 1] == shop[j].nameid || item_list[i * 2 + 1] == itemdb_viewid(shop[j].nameid));
+				if (j < shop_size) {
+					script->setarray_pc(sd, "@bought_value", i, (void *)(intptr_t)shop[j].value, &key_value);
+				}
+			}
+		}
+	}
+
+	return 0;
 }
 
 /// Shop item(s) purchase request (CZ_PC_PURCHASE_ITEMLIST_FROMMC2).

@@ -211,25 +211,24 @@ int mob_dead(int retVal, struct mob_data *md, struct block_list *src, int *type)
 }
 
 void status_calc_bl_main(struct block_list *bl, int *flag) {
-	if (*flag&SCB_BASE && bl && bl->type == BL_PC) {
+	if (*flag&SCB_ALL && bl && bl->type == BL_PC) {
 		struct map_session_data *sd = BL_CAST(BL_PC, bl);
 		struct event_data* ev = (struct event_data*)strdb_get(npc->ev_db, "ReputationSystem::OnCalcBonus");
 
 		if (ev) {
 			script->run(ev->nd->u.scr.script, ev->pos, sd->bl.id, ev->nd->bl.id);
 
-			sd->base_status.str += sd->param_bonus[0];
-			sd->base_status.agi += sd->param_bonus[1];
-			sd->base_status.vit += sd->param_bonus[2];
-			sd->base_status.int_ += sd->param_bonus[3];
-			sd->base_status.dex += sd->param_bonus[4];
-			sd->base_status.luk += sd->param_bonus[5];
+			sd->battle_status.str += sd->param_bonus[0];
+			sd->battle_status.agi += sd->param_bonus[1];
+			sd->battle_status.vit += sd->param_bonus[2];
+			sd->battle_status.int_ += sd->param_bonus[3];
+			sd->battle_status.dex += sd->param_bonus[4];
+			sd->battle_status.luk += sd->param_bonus[5];
 
-			sd->base_status.max_hp = APPLY_RATE(sd->base_status.max_hp, sd->hprate);
-			sd->base_status.hp = sd->base_status.max_hp;
-			sd->base_status.max_sp = APPLY_RATE(sd->base_status.max_sp, sd->sprate);
-			sd->base_status.sp = sd->base_status.sp;
-			status_percent_heal(bl, 100, 100);
+			sd->battle_status.max_hp = APPLY_RATE(sd->battle_status.max_hp, sd->hprate);
+			sd->battle_status.hp = sd->battle_status.max_hp;
+			sd->battle_status.max_sp = APPLY_RATE(sd->battle_status.max_sp, sd->sprate);
+			sd->battle_status.sp = sd->battle_status.sp;
 
 			sd->max_weight += 2000 * pc->checkskill(sd, ALL_INCCARRY);
 		}
